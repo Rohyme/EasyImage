@@ -34,6 +34,25 @@ internal object Intents {
         intent.type = "image/*"
         return intent
     }
+   internal fun getFileChooserIntent(mimeTypes:Array<String>): Intent {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            intent.type = if (mimeTypes.size == 1) mimeTypes[0] else "*/*"
+            if (mimeTypes.isNotEmpty()) {
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
+            }
+        } else {
+            var mimeTypesStr = ""
+
+            for (mimeType in mimeTypes) {
+                mimeTypesStr += "$mimeType|"
+            }
+            intent.type = mimeTypesStr.substring(0, mimeTypesStr.length - 1)
+        }
+
+        return intent
+    }
 
     internal fun createGalleryIntent(allowMultiple: Boolean): Intent {
         val intent = plainGalleryPickerIntent()

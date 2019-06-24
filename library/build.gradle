@@ -1,21 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
-apply plugin: 'maven-publish'
 
-def artifactId = 'EasyImageLegacy'
-def groupId = 'com.github.jkwiecien'
-
-publishing {
-    publications {
-        library(MavenPublication) {
-            setGroupId(groupId)
-            setArtifactId(artifactId)
-            version version_name
-            artifact(bundleReleaseAar)
-        }
-    }
-}
 
 android {
     compileSdkVersion compile_sdk_version

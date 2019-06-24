@@ -7,14 +7,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import pl.aprilapps.easyphotopicker.ChooserType;
 import pl.aprilapps.easyphotopicker.DefaultCallback;
 import pl.aprilapps.easyphotopicker.EasyImage;
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private ImagesAdapter imagesAdapter;
 
     private ArrayList<MediaFile> photos = new ArrayList<>();
+    private String[] ss = {"application/pdf"};
 
     private EasyImage easyImage;
 
@@ -109,15 +111,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 /** Some devices such as Samsungs which have their own gallery app require write permission. Testing is advised! */
-
                 int permissionCheck = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-                    easyImage.openDocuments(MainActivity.this);
+                    easyImage.openDocumentFiles(MainActivity.this, ss);
                 } else {
                     Nammu.askForPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE, new PermissionCallback() {
                         @Override
                         public void permissionGranted() {
-                            easyImage.openDocuments(MainActivity.this);
+                            easyImage.openDocumentFiles(MainActivity.this, ss);
                         }
 
                         @Override
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.chooser_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                easyImage.openChooser(MainActivity.this);
+                easyImage.openDocuments(MainActivity.this);
             }
         });
 
@@ -165,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onMediaFilesPicked(MediaFile[] imageFiles, MediaSource source) {
                 for (MediaFile imageFile : imageFiles) {
-                    Log.d("EasyImage", "Image file returned: " + imageFile.getFile().toString());
+                    Log.e("EasyImage", "Image file returned: " + imageFile.getFile().toString());
                 }
                 onPhotosReturned(imageFiles);
             }

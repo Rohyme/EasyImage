@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.fragment.app.Fragment
+import pl.aprilapps.easyphotopicker.Intents.getFileChooserIntent
 import java.io.IOException
 
 
@@ -62,6 +63,17 @@ class EasyImage private constructor(
         }
     }
 
+    private fun startFilesDocuments(caller: Any, filesMemes: Array<String> = emptyArray()) {
+        cleanup()
+        getCallerActivity(caller)?.let { activity ->
+            val intent = getFileChooserIntent(filesMemes)
+            activity.startActivityForResult(intent, RequestCodes.PICK_FILES_FROM_DOCUMENTS)
+        }
+    }
+
+
+
+
     private fun startGallery(caller: Any) {
         cleanup()
         getCallerActivity(caller)?.let { activity ->
@@ -108,6 +120,8 @@ class EasyImage private constructor(
     fun openChooser(fragment: android.app.Fragment) = startChooser(fragment)
     fun openDocuments(activity: Activity) = startDocuments(activity)
     fun openDocuments(fragment: Fragment) = startDocuments(fragment)
+    fun openDocumentFiles(activity: Activity , memesType :Array<String>) = startFilesDocuments(activity, memesType)
+    fun openDocumentFiles(fragment: Fragment, memesType :Array<String>) = startFilesDocuments(fragment,memesType)
     fun openDocuments(fragment: android.app.Fragment) = startDocuments(fragment)
     fun openGallery(activity: Activity) = startGallery(activity)
     fun openGallery(fragment: Fragment) = startGallery(fragment)
@@ -121,11 +135,12 @@ class EasyImage private constructor(
 
     fun handleActivityResult(requestCode: Int, resultCode: Int, resultIntent: Intent?, activity: Activity, callbacks: Callbacks) {
         // EasyImage request codes are set to be between 374961 and 374965.
-        if (requestCode !in 34961..34965) return
+        if (requestCode !in 34961..34966) return
 
         val mediaSource = when (requestCode) {
             RequestCodes.PICK_PICTURE_FROM_DOCUMENTS -> MediaSource.DOCUMENTS
             RequestCodes.PICK_PICTURE_FROM_GALLERY -> MediaSource.GALLERY
+            RequestCodes.PICK_FILES_FROM_DOCUMENTS -> MediaSource.FILES
             RequestCodes.TAKE_PICTURE -> MediaSource.CAMERA_IMAGE
             RequestCodes.CAPTURE_VIDEO -> MediaSource.CAMERA_VIDEO
             else -> MediaSource.CHOOSER
@@ -134,6 +149,8 @@ class EasyImage private constructor(
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == RequestCodes.PICK_PICTURE_FROM_DOCUMENTS && resultIntent != null) {
                 onPickedExistingPicturesFromLocalStorage(resultIntent, activity, callbacks)
+            } else if (requestCode == RequestCodes.PICK_FILES_FROM_DOCUMENTS && resultIntent != null) {
+                onPickedFileFromLocalStorage(resultIntent, activity, callbacks)
             } else if (requestCode == RequestCodes.PICK_PICTURE_FROM_GALLERY && resultIntent != null) {
                 onPickedExistingPictures(resultIntent, activity, callbacks)
             } else if (requestCode == RequestCodes.PICK_PICTURE_FROM_CHOOSER) {
@@ -159,6 +176,20 @@ class EasyImage private constructor(
         } catch (error: Throwable) {
             error.printStackTrace()
             callbacks.onImagePickerError(error, MediaSource.DOCUMENTS)
+        }
+        cleanup()
+    }
+
+    private fun onPickedFileFromLocalStorage(resultIntent: Intent, activity: Activity, callbacks: Callbacks) {
+        Log.d(EASYIMAGE_LOG_TAG, "Existing picture returned from local storage")
+        try {
+            val uri = resultIntent.data!!
+            val file = Files.pickedExistingPicture(activity, uri)
+            val mediaFile = MediaFile(uri, file)
+            callbacks.onMediaFilesPicked(arrayOf(mediaFile), MediaSource.FILES)
+        } catch (error: Throwable) {
+            error.printStackTrace()
+            callbacks.onImagePickerError(error, MediaSource.FILES)
         }
         cleanup()
     }
